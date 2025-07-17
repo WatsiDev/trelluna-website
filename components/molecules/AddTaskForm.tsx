@@ -3,17 +3,19 @@
 import { useState } from 'react'
 
 interface AddTaskFormProps {
-  status: 'in-progress' | 'reviewed' | 'completed'
+  columnId: number
   onClose: () => void
   onAdd: () => void
 }
 
-export default function AddTaskForm({ status, onClose, onAdd }: AddTaskFormProps) {
+export default function AddTaskForm({ columnId, onClose, onAdd }: AddTaskFormProps) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [priority, setPriority] = useState('Important')
   const [impact, setImpact] = useState('medio')
   const [probabilidad, setProbabilidad] = useState('medio')
+  const [dueDate, setDueDate] = useState('')
+  const [file, setFile] = useState<File | null>(null)
 
   const calcularNivelRiesgo = (impacto: string, prob: string): string => {
     const niveles = {
@@ -28,58 +30,75 @@ export default function AddTaskForm({ status, onClose, onAdd }: AddTaskFormProps
     return 'bajo'
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
     const riesgo = calcularNivelRiesgo(impact, probabilidad)
+
     const newTask = {
-      id: crypto.randomUUID(),
       title,
       description,
+      column_id: columnId,
       priority,
       impact,
       probabilidad,
       riesgo,
-      comments: 0,
-      views: 0,
-      users: ["https://i.pravatar.cc/40?img=12"],
-      status
+      dueDate,
+      fileName: file?.name || null,
     }
 
-    const tasks = JSON.parse(localStorage.getItem('kanban-tasks') || '[]')
-    tasks.push(newTask)
-    localStorage.setItem('kanban-tasks', JSON.stringify(tasks))
-    onAdd()
-    onClose()
+    try {
+      const res = await fetch('https://kanban-api-production-3916.up.railway.app/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newTask),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) throw new Error(data.error || 'Error al crear tarea')
+
+      // Reset form
+      setTitle('')
+      setDescription('')
+      setDueDate('')
+      setFile(null)
+
+      onAdd()
+      onClose()
+    } catch (err: any) {
+      alert('❌ ' + err.message)
+    }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="p-3 bg-white rounded-lg mb-4 border border-gray-200 shadow-sm">
+    <form onSubmit={handleSubmit} className="p-3 bg-white rounded-lg mb-4 border border-gray-200 shadow-sm space-y-2">
       <input
         type="text"
         placeholder="Título"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         required
-        className="w-full px-3 py-2 mb-2 rounded border text-gray-800"
+        className="w-full px-3 py-2 rounded border text-gray-800"
       />
       <textarea
         placeholder="Descripción"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         required
-        className="w-full px-3 py-2 mb-2 rounded border text-gray-800"
+        className="w-full px-3 py-2 rounded border text-gray-800"
       />
       <select
         value={priority}
         onChange={(e) => setPriority(e.target.value)}
-        className="w-full px-3 py-2 mb-2 rounded border text-gray-800"
+        className="w-full px-3 py-2 rounded border text-gray-800"
       >
         <option value="Important">Important</option>
         <option value="OK">OK</option>
         <option value="Meh">Meh</option>
       </select>
 
-      <div className="grid grid-cols-2 gap-2 mb-2">
+      <div className="grid grid-cols-2 gap-2">
         <select
           value={impact}
           onChange={(e) => setImpact(e.target.value)}
@@ -101,11 +120,31 @@ export default function AddTaskForm({ status, onClose, onAdd }: AddTaskFormProps
         </select>
       </div>
 
-      <div className="flex justify-between">
+      <div>
+        <label className="text-sm font-medium block mb-1">Fecha y hora de entrega</label>
+        <input
+          type="datetime-local"
+          value={dueDate}
+          onChange={(e) => setDueDate(e.target.value)}
+          className="w-full px-3 py-2 rounded border text-gray-800"
+        />
+      </div>
+
+      <div>
+        <label className="text-sm font-medium block mb-1">Adjuntar archivo (PDF o imagen)</label>
+        <input
+          type="file"
+          accept=".pdf,image/*"
+          onChange={(e) => setFile(e.target.files?.[0] || null)}
+          className="w-full px-3 py-2 rounded border text-gray-800"
+        />
+      </div>
+
+      <div className="flex justify-between pt-2">
         <button type="submit" className="bg-green-600 text-white px-4 py-1 rounded">
           Agregar
         </button>
-        <button type="button" onClick={onClose} className="text-sm text-gray-400 hover:text-red-500">
+        <button type="button" onClick={onClose} className="text-sm text-red-500 hover:underline">
           Cancelar
         </button>
       </div>

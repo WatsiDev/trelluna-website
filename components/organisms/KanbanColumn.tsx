@@ -1,58 +1,86 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import TaskCard from '@/components/molecules/TaskCard'
-import AddTaskForm from '@/components/molecules/AddTaskForm'
+import AddTaskForm from '../molecules/AddTaskForm'
+import TaskCard from '../molecules/TaskCard'
 
-interface KanbanColumnProps {
+export interface Task {
+  id: string
   title: string
-  status: 'in-progress' | 'reviewed' | 'completed'
+  description: string
+  priority: string
+  comments: number
+  views: number
+  users: string[]
+  riesgo?: string
+  dueDate?: string
+  fileName?: string | null
+  status: string
 }
 
-export default function KanbanColumn({ title, status }: KanbanColumnProps) {
+
+
+
+export interface KanbanColumnProps {
+  title: string
+  status: 'in-progress' | 'reviewed' | 'completed'
+  columnId: number
+  tasks: Task[]
+  onAdd: () => void
+  onClose: () => void
+}
+
+
+export default function KanbanColumn({
+  title,
+  status,
+  columnId,
+  onClose,
+  onAdd,
+}: KanbanColumnProps) {
   const [showForm, setShowForm] = useState(false)
-  const [tasks, setTasks] = useState<any[]>([])
+  const [tasks, setTasks] = useState<Task[]>([])
+
+  const loadTasks = () => {
+    fetch(`https://kanban-api-production-3916.up.railway.app/api/tasks?column_id=${columnId}`)
+      .then((res) => res.json())
+      .then(setTasks)
+      .catch(console.error)
+  }
 
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem('kanban-tasks') || '[]')
-    setTasks(stored.filter((t: any) => t.status === status))
-  }, [showForm])
-
-  const colorMap = {
-    'in-progress': 'bg-purple-600',
-    reviewed: 'bg-yellow-500',
-    completed: 'bg-green-500'
-  }[status]
+    loadTasks()
+  }, [columnId])
 
   return (
-    <div className="bg-white p-4 rounded-xl shadow-md">
+    <div className="bg-gray-100 p-4 rounded-lg w-full max-w-sm">
       <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center gap-2">
-          <span className={`${colorMap} text-white px-3 py-1 rounded-full text-xs`}>
-            {tasks.length}
-          </span>
-          <h2 className="font-bold text-lg">{title}</h2>
-        </div>
-        <button onClick={() => setShowForm(!showForm)} className="text-xl font-bold text-gray-400 hover:text-gray-600">
+        <h2 className="text-lg font-semibold">{title}</h2>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="text-gray-500 hover:text-black"
+        >
           {showForm ? '-' : '+'}
         </button>
       </div>
 
       {showForm && (
         <AddTaskForm
-          status={status}
+          columnId={columnId}
           onClose={() => setShowForm(false)}
           onAdd={() => {
-            const stored = JSON.parse(localStorage.getItem('kanban-tasks') || '[]')
-            setTasks(stored.filter((t: any) => t.status === status))
+            loadTasks()
+            onAdd()
           }}
         />
       )}
 
       {tasks.length === 0 ? (
-        <p className="text-sm text-gray-400">No hay tareas</p>
+        <p className="text-sm text-gray-400">No hay tareas pendientes por ahora</p>
       ) : (
-        tasks.map((task: any) => <TaskCard key={task.id} task={task} />)
+        tasks.map((task) => (
+          <TaskCard key={task.id} task={task} onTaskUpdate={loadTasks} />
+        ))
       )}
     </div>
   )

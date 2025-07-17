@@ -6,17 +6,35 @@ import { useState } from 'react'
 export default function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
   const router = useRouter()
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    const user = JSON.parse(localStorage.getItem(`user-${email}`) || '{}')
+    setLoading(true)
 
-    if (user && user.password === password) {
-      localStorage.setItem('kanban-user', JSON.stringify({ email }))
+    try {
+      const res = await fetch('https://kanban-api-production-3916.up.railway.app/api/users/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Credenciales incorrectas')
+      }
+
+      // Guardar usuario y token (si aplica)
+      localStorage.setItem('kanban-user', JSON.stringify(data.user || { email }))
+
+      alert('✅ Inicio de sesión exitoso')
       router.push('/dashboard')
-    } else {
-      alert('Correo o contraseña incorrectos ❌')
+    } catch (err: any) {
+      alert(`❌ ${err.message}`)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -38,8 +56,12 @@ export default function LoginForm() {
         onChange={(e) => setPassword(e.target.value)}
         required
       />
-      <button type="submit" className="w-full bg-purple-600 rounded-full py-2 font-semibold hover:bg-purple-700">
-        Iniciar sesión
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full bg-purple-600 rounded-full py-2 font-semibold hover:bg-purple-700"
+      >
+        {loading ? 'Iniciando...' : 'Iniciar sesión'}
       </button>
     </form>
   )
