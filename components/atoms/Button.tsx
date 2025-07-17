@@ -6,7 +6,7 @@ interface FancyButtonProps {
   children: React.ReactNode
   onClick?: () => void
   type?: 'button' | 'submit'
-  className?: string
+  className?: string//njdjjfd
 }
 
 export default function FancyButton({

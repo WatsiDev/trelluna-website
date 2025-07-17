@@ -84,4 +84,4 @@ export default function KanbanColumn({
       )}
     </div>
   )
-}
+}//ultima vvizualizacion
