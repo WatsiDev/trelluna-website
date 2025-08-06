@@ -25,13 +25,13 @@ export default function DashboardPage() {
 
   useEffect(() => {
     // Obtener columnas
-    fetch('https://kanban-api-production-3916.up.railway.app/api/columns')
+    fetch('https://kanban-api-production-a195.up.railway.app/api/columns')
       .then((res) => res.json())
       .then(setColumns)
       .catch(console.error)
 
     // Obtener tareas y transformarlas
-    fetch('https://kanban-api-production-3916.up.railway.app/api/tasks')
+    fetch('https://kanban-api-production-a195.up.railway.app/api/tasks')
       .then((res) => res.json())
       .then((data) => {
         const rawTasks = Array.isArray(data) ? data : data.tasks || []

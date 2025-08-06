@@ -13,7 +13,7 @@ export default function RegisterForm() {
     setLoading(true)
 
     try {
-      const res = await fetch('https://kanban-api-production-3916.up.railway.app/api/users', {
+      const res = await fetch('https://kanban-api-production-a195.up.railway.app/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

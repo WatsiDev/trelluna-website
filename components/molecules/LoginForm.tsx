@@ -14,7 +14,7 @@ export default function LoginForm() {
     setLoading(true)
 
     try {
-      const res = await fetch('https://kanban-api-production-3916.up.railway.app/api/users/login', {
+      const res = await fetch('https://kanban-api-production-a195.up.railway.app/api/users/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

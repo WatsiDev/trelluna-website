@@ -42,7 +42,7 @@ export default function KanbanColumn({
   const [tasks, setTasks] = useState<Task[]>([])
 
   const loadTasks = () => {
-    fetch(`https://kanban-api-production-3916.up.railway.app/api/tasks?column_id=${columnId}`)
+    fetch(`https://kanban-api-production-a195.up.railway.app/api/tasks?column_id=${columnId}`)
       .then((res) => res.json())
       .then(setTasks)
       .catch(console.error)
