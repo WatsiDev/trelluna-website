@@ -20,8 +20,18 @@ export default function LoginPage() {
 
   return (
     <main className="relative min-h-screen bg-black/70 backdrop-blur-md flex justify-center items-center px-4">
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="bg-white text-gray-800 rounded-3xl shadow-2xl max-w-md w-full p-8 border border-gray-200">
+      <Dialog
+        open={open}
+        onOpenChange={(value) => {
+          // Previene el cierre del dialog desde afuera
+          if (value) setOpen(true)
+        }}
+      >
+        <DialogContent
+          className="bg-white text-gray-800 rounded-3xl shadow-2xl max-w-md w-full p-8 border border-gray-200"
+          //hideCloseButton // Esto depende de si tu Dialog lo soporta
+          onInteractOutside={(e) => e.preventDefault()} // Radix-style
+        >
           <DialogHeader>
             <img
               src="/trellunaText.svg"
