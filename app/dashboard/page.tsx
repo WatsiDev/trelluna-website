@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Sidebar from '@/components/organisms/Sidebar'
 import Topbar from '@/components/organisms/Topbar'
 import KanbanColumn from '@/components/organisms/KanbanColumn'
+import AddColumnForm from '@/components/molecules/AddColumnForm'
 import { motion } from 'framer-motion'
 import type { Task } from '@/components/organisms/KanbanColumn'
 
@@ -17,18 +18,22 @@ export default function DashboardPage() {
   const router = useRouter()
   const [columns, setColumns] = useState<Column[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
+  const [showModal, setShowModal] = useState(false)
 
   useEffect(() => {
     const user = localStorage.getItem('kanban-user')
     if (!user) router.push('/login')
   }, [router])
 
-  useEffect(() => {
-    // Obtener columnas
+  const fetchColumns = () => {
     fetch('https://kanban-api-production-a195.up.railway.app/api/columns')
       .then((res) => res.json())
       .then(setColumns)
       .catch(console.error)
+  }
+
+  useEffect(() => {
+    fetchColumns()
 
     // Obtener tareas y transformarlas
     fetch('https://kanban-api-production-a195.up.railway.app/api/tasks')
@@ -75,8 +80,9 @@ export default function DashboardPage() {
             whileTap={{ scale: 0.95 }}
             whileHover={{ scale: 1.05 }}
             className="bg-purple-600 text-white px-4 py-2 rounded-lg shadow hover:bg-purple-700 transition"
+            onClick={() => setShowModal(true)}
           >
-            + Nueva tarea
+            + Nueva lista
           </motion.button>
         </div>
 
@@ -114,6 +120,15 @@ export default function DashboardPage() {
             </motion.div>
           ))}
         </motion.div>
+
+        {showModal && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <AddColumnForm
+              onAdd={fetchColumns}
+              onClose={() => setShowModal(false)}
+            />
+          </div>
+        )}
       </section>
     </main>
   )

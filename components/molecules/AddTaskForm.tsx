@@ -33,32 +33,30 @@ export default function AddTaskForm({ columnId, onClose, onAdd }: AddTaskFormPro
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    // Este cálculo es interno, no se envía por ahora
     const riesgo = calcularNivelRiesgo(impact, probabilidad)
 
-    const newTask = {
+    // Objeto que se enviará a la API (solo con campos válidos)
+    const newTaskForApi = {
       title,
       description,
-      column_id: columnId,
       priority,
-      impact,
-      probabilidad,
-      riesgo,
-      dueDate,
-      fileName: file?.name || null,
+      column_id: columnId,
+      created_by: 1, // Puedes reemplazar esto si tienes auth más adelante
     }
 
     try {
       const res = await fetch('https://kanban-api-production-a195.up.railway.app/api/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newTask),
+        body: JSON.stringify(newTaskForApi),
       })
 
       const data = await res.json()
 
       if (!res.ok) throw new Error(data.error || 'Error al crear tarea')
 
-      // Reset form
+      // Limpiar el formulario
       setTitle('')
       setDescription('')
       setDueDate('')
@@ -72,7 +70,10 @@ export default function AddTaskForm({ columnId, onClose, onAdd }: AddTaskFormPro
   }
 
   return (
-    <form onSubmit={handleSubmit} className="p-3 bg-white rounded-lg mb-4 border border-gray-200 shadow-sm space-y-2">
+    <form
+      onSubmit={handleSubmit}
+      className="p-3 bg-white rounded-lg mb-4 border border-gray-200 shadow-sm space-y-2"
+    >
       <input
         type="text"
         placeholder="Título"
